@@ -6,13 +6,15 @@ CACHE_DIR=`pwd`/cache
 echo "Making cache directory: cache/"
 mkdir $CACHE_DIR
 
-function getUrls() {
+function getHrefs() {
   curl $1 | sed -e $'s/ /\\\n/g' | \
    grep --color=never -Eowe 'href\="(.*)"' | \
    awk -F '=' '{print substr($0, length($1)+2)}' | \
    sed -e 's/"//g' | \
    sed -e "s|$INSTANCE_DEV_URL||g" | \
    grep -v 'http' | \
+   grep --color=never -E '^/' | \
+   grep --color=never -Ev '^//' | \
    sort | uniq
 }
 
@@ -23,13 +25,29 @@ function getSrc() {
    sed -e 's/"//g' | \
    sed -e "s|$INSTANCE_DEV_URL||g" | \
    grep -v 'http' | \
+   grep --color=never -E '^/' | \
+   grep --color=never -Ev '^//' | \
+   sort | uniq
+}
+
+function getUrls() {
+  curl $1 | sed -e $'s/ /\\\n/g' | \
+   grep --color=never -Eowe 'url\((.*)\)' | \
+   sed -e 's/url(//g' | \
+   sed -e 's/)//g' | \
+   sed -e "s/'//g" | \
+   sed -e 's/"..//g' | \
+   sed -e 's/"//g' | \
+   sed -e "s|$INSTANCE_DEV_URL||g" | \
+   grep --color=never -E '^/' | \
+   grep --color=never -Ev '^//' | \
    sort | uniq
 }
 
 curl ${INSTANCE_DEV_URL} | sed -e "s|${INSTANCE_DEV_URL}||g" > "${CACHE_DIR}/index.html"
 
 # Fetch URLS at Root
-URLS=$(getUrls $INSTANCE_DEV_URL)' '$(getSrc $INSTANCE_DEV_URL)
+URLS=$(getHrefs $INSTANCE_DEV_URL)' '$(getSrc $INSTANCE_DEV_URL)' '$(getUrls $INSTANCE_DEV_URL)
 LENGTH=-1
 while [[ $LENGTH -ne ${#URLS} ]]; do
   LENGTH=${#URLS} # Update Length
@@ -41,10 +59,14 @@ while [[ $LENGTH -ne ${#URLS} ]]; do
     else 
       CLEAN_ENDPOINT=`echo $endpoint | tr '?' '\n' | head -n 1`
       mkdir -p $(dirname $CACHE_DIR/$CLEAN_ENDPOINT)
-      curl ${INSTANCE_DEV_URL}${endpoint} | sed -e "s|${INSTANCE_DEV_URL}||g" > "${CACHE_DIR}${CLEAN_ENDPOINT}"
+      if [[ "${CLEAN_ENDPOINT}" =~ (png|jpg|gif)$ ]]; then 
+        curl ${INSTANCE_DEV_URL}${endpoint} > "${CACHE_DIR}${CLEAN_ENDPOINT}"
+      else
+        curl ${INSTANCE_DEV_URL}${endpoint} | sed -e "s|${INSTANCE_DEV_URL}||g" > "${CACHE_DIR}${CLEAN_ENDPOINT}"
+      fi 
       echo "${CACHE_DIR}${CLEAN_ENDPOINT}"
     fi
-    URLS=$URLS' '$(getUrls ${INSTANCE_DEV_URL}${endpoint})' '$(getSrc ${INSTANCE_DEV_URL}${endpoint})
+    URLS=$URLS' '$(getHrefs ${INSTANCE_DEV_URL}${endpoint})' '$(getSrc ${INSTANCE_DEV_URL}${endpoint})' '$(getUrls ${INSTANCE_DEV_URL}${endpoint})
   done
   URLS=`echo $URLS | awk 'BEGIN {RS=" "} {print $0}' | sort | uniq`
   echo $URLS
