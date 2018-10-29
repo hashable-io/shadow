@@ -2,4 +2,5 @@
 
 INSTANCE_NAME='my-ghost-blog'
 
-docker kill $INSTANCE_NAME | docker rm
+docker kill $INSTANCE_NAME
+docker rm $INSTANCE_NAME

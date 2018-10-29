@@ -1,16 +1,26 @@
 #! /usr/bin/env bash
 
-echo "Deleting config files..."
-rm config.development.json 2> /dev/null
-rm config.production.json 2> /dev/null
+[[ -z "${1}" ]] && echo "Must provide one option. --configs, --content, or --cache" && exit 1;
 
-echo "Deleting Dockerfiles..."
-rm Dockerfile.production 2> /dev/null
-rm Dockerfile.development 2> /dev/null
 
-if [[ "${1}" == "-a" ]]; then
+if [[ "${1}" == "--configs" ]]; then
+  echo "Deleting config files..."
+  rm config.development.json 2> /dev/null
+  rm config.production.json 2> /dev/null
+
+  echo "Deleting Dockerfiles..."
+  rm Dockerfile.production 2> /dev/null
+  rm Dockerfile.development 2> /dev/null
+fi 
+
+if [[ "${1}" == "--content" ]]; then
  echo "Deleting content..."
  rm -rf content/ 2> /dev/null
+fi
+
+if [[ "${1}" == "--cache" ]]; then
+ echo "Deleting cache..."
+ rm -rf cache/ 2> /dev/null
 fi
 
 echo "Done."

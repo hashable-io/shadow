@@ -2,7 +2,7 @@
 
 # TODO: READ INSTANCE_NAME FROM CONFIG.
 INSTANCE_NAME='my-ghost-blog'
-TAG="${INSTANCE_NAME}:${INSTANCE_TAG}"
+
 
 if [[ "${ENV_TAG}" != 'production' ]]; then
   # TODO: VERIFY THAT ENV_TAG HAS A VALID VALUE: production/development
@@ -13,6 +13,7 @@ else
   INSTANCE_TAG='latest'
 fi
 
+TAG="${INSTANCE_NAME}:${INSTANCE_TAG}"
 DOCKER_TEMPLATE="Dockerfile.${ENV_TAG}"
 
 cat "${DOCKER_TEMPLATE}" > Dockerfile
