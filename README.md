@@ -34,3 +34,9 @@ ENV_TAG=production ./build_docker_image
 # ...pull image and run instance in prod:
 ENV_TAG=production ./run_instance
 ```
+
+## Generating Static Site
+Assuming that the development site is running locally...
+```
+./make_cache
+```
