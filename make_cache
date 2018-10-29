@@ -1,0 +1,52 @@
+#! /usr/bin/env bash
+
+INSTANCE_DEV_URL='http://localhost:2368'
+CACHE_DIR=`pwd`/cache
+
+echo "Making cache directory: cache/"
+mkdir $CACHE_DIR
+
+function getUrls() {
+  curl $1 | sed -e $'s/ /\\\n/g' | \
+   grep --color=never -Eowe 'href\="(.*)"' | \
+   awk -F '=' '{print substr($0, length($1)+2)}' | \
+   sed -e 's/"//g' | \
+   sed -e "s|$INSTANCE_DEV_URL||g" | \
+   grep -v 'http' | \
+   sort | uniq
+}
+
+function getSrc() {
+  curl $1 | sed -e $'s/ /\\\n/g' | \
+   grep --color=never -Eowe 'src\="(.*)"' | \
+   awk -F '=' '{print substr($0, length($1)+2)}' | \
+   sed -e 's/"//g' | \
+   sed -e "s|$INSTANCE_DEV_URL||g" | \
+   grep -v 'http' | \
+   sort | uniq
+}
+
+curl ${INSTANCE_DEV_URL} | sed -e "s|${INSTANCE_DEV_URL}||g" > "${CACHE_DIR}/index.html"
+
+# Fetch URLS at Root
+URLS=$(getUrls $INSTANCE_DEV_URL)' '$(getSrc $INSTANCE_DEV_URL)
+LENGTH=-1
+while [[ $LENGTH -ne ${#URLS} ]]; do
+  LENGTH=${#URLS} # Update Length
+  for endpoint in ${URLS}; do
+    echo "Exploring: $endpoint"
+    if [[ "${endpoint}" =~ /.*/$ ]]; then
+      mkdir -p $CACHE_DIR/$endpoint
+      curl ${INSTANCE_DEV_URL}${endpoint} | sed -e "s|${INSTANCE_DEV_URL}||g" > "${CACHE_DIR}${endpoint}/index.html"
+    else 
+      CLEAN_ENDPOINT=`echo $endpoint | tr '?' '\n' | head -n 1`
+      mkdir -p $(dirname $CACHE_DIR/$CLEAN_ENDPOINT)
+      curl ${INSTANCE_DEV_URL}${endpoint} | sed -e "s|${INSTANCE_DEV_URL}||g" > "${CACHE_DIR}${CLEAN_ENDPOINT}"
+      echo "${CACHE_DIR}${CLEAN_ENDPOINT}"
+    fi
+    URLS=$URLS' '$(getUrls ${INSTANCE_DEV_URL}${endpoint})' '$(getSrc ${INSTANCE_DEV_URL}${endpoint})
+  done
+  URLS=`echo $URLS | awk 'BEGIN {RS=" "} {print $0}' | sort | uniq`
+  echo $URLS
+done
+
