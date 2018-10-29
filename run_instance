@@ -1,0 +1,30 @@
+#! /usr/bin/env bash
+
+CONTENT_DIR=`pwd`/content
+INSTANCE_NAME='my-ghost-blog'
+INSTANCE_PORT=2368
+HOST_PORT=2368
+
+echo "Running Ghost Instance on Port: $HOST_PORT"
+
+if [[ "${ENV_TAG}" != 'production' ]]; then
+
+  echo "Making Content Directory at: ${CONTENT_DIR}"
+  mkdir $CONTENT_DIR 2> /dev/null
+  INSTANCE_TAG='development'
+  
+  docker run -d \
+    --name $INSTANCE_NAME \
+    -p $HOST_PORT:$INSTANCE_PORT \
+    -v $CONTENT_DIR:/var/lib/ghost/content \
+    $INSTANCE_NAME:$INSTANCE_TAG
+
+else
+
+  INSTANCE_TAG='latest'
+  docker run -d \
+    --name $INSTANCE_NAME \
+    -p $HOST_PORT:$INSTANCE_PORT \
+    $INSTANCE_NAME:$INSTANCE_TAG
+    
+fi

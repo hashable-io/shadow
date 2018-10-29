@@ -1,0 +1,50 @@
+#! /usr/bin/env bash
+
+INSTANCE_PROD_URL='https://blog.hashable.io'
+INSTANCE_PROD_ADMIN_URL='https://admin.hashable.io'
+INSTANCE_DEV_URL='http://localhost:2368'
+INSTANCE_DEV_ADMIN_URL='http://localhost:2368'
+
+
+BASE_TEMPLATE=$(cat <<EOF
+{
+  "url": "__BASE_URL_VALUE__",
+  "admin": {
+    "url": "__ADMIN_URL_VALUE__"
+  },
+  "server": {
+    "port": 2368,
+    "host": "0.0.0.0"
+  },
+  "database": {
+    "client": "sqlite3",
+    "connection": {
+      "filename": "/var/lib/ghost/content/data/ghost.db"
+    }
+  },
+  "mail": {
+    "transport": "Direct"
+  },
+  "logging": {
+    "transports": [
+      "file",
+      "stdout"
+    ]
+  },
+  "process": "systemd",
+  "paths": {
+    "contentPath": "/var/lib/ghost/content"
+  }
+}
+EOF
+)
+
+echo "Writing production configuration to: config.production.json"
+echo $BASE_TEMPLATE | \
+  sed -e "s|__BASE_URL_VALUE__|${INSTANCE_PROD_URL}|g" | \
+  sed -e "s|__ADMIN_URL_VALUE__|${INSTANCE_PROD_ADMIN_URL}|g" > config.production.json
+
+echo "Writing development configuration to: config.development.json"
+echo $BASE_TEMPLATE | \
+  sed -e "s|__BASE_URL_VALUE__|${INSTANCE_DEV_URL}|g" | \
+  sed -e "s|__ADMIN_URL_VALUE__|${INSTANCE_DEV_ADMIN_URL}|g" > config.development.json

@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+GHOST_VERSION=2.0.3
+
+# Production Version of Dockerfile:
+# Copy the SQLite DB into the Container for distribution.
+cat <<EOF > Dockerfile.production
+FROM ghost:$GHOST_VERSION-alpine
+
+ENV NODE_ENV=production
+
+COPY content /var/lib/ghost/content
+COPY config.production.json /var/lib/ghost/
+EOF
+
+# Development Verion of Dockerfile:
+# Save the SQLite DB onto local disk for versioning.
+cat <<EOF > Dockerfile.development
+FROM ghost:$GHOST_VERSION-alpine
+
+ENV NODE_ENV=development
+
+COPY config.development.json /var/lib/ghost/
+EOF

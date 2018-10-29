@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+
+INSTANCE_NAME='my-ghost-blog'
+
+docker kill $INSTANCE_NAME | docker rm

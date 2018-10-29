@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+echo "Deleting config files..."
+rm config.development.json 2> /dev/null
+rm config.production.json 2> /dev/null
+
+echo "Deleting Dockerfiles..."
+rm Dockerfile.production 2> /dev/null
+rm Dockerfile.development 2> /dev/null
+
+if [[ "${1}" == "-a" ]]; then
+ echo "Deleting content..."
+ rm -rf content/ 2> /dev/null
+fi
+
+echo "Done."
